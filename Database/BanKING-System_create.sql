@@ -1,5 +1,5 @@
 -- Created by Vertabelo (http://vertabelo.com)
--- Last modification date: 2016-03-21 08:46:50.599
+-- Last modification date: 2016-03-21 17:22:05.86
 
 
 
@@ -16,7 +16,6 @@ CREATE TABLE BANK_ACCOUNTS (
     id integer  NOT NULL   PRIMARY KEY  AUTOINCREMENT,
     type_id integer  NOT NULL,
     balance integer  NOT NULL,
-    interest_rate integer,
     total_transactions integer  NOT NULL,
     overdraft_id integer,
     client_id integer  NOT NULL,
