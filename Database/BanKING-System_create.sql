@@ -1,5 +1,5 @@
 -- Created by Vertabelo (http://vertabelo.com)
--- Last modification date: 2016-03-21 17:22:05.86
+-- Last modification date: 2016-03-26 16:12:45.199
 
 
 
@@ -20,6 +20,7 @@ CREATE TABLE BANK_ACCOUNTS (
     overdraft_id integer,
     client_id integer  NOT NULL,
     account_number integer  NOT NULL,
+    is_locked boolean  NOT NULL  DEFAULT FALSE,
     CONSTRAINT BANK_ACCOUNTS_ak_1 UNIQUE (account_number),
     FOREIGN KEY (type_id) REFERENCES ACCOUNT_TYPE (id),
     FOREIGN KEY (client_id) REFERENCES BANK_CLIENTS (id),

@@ -1,0 +1,5 @@
+SELECT USER_TYPE.type
+FROM USER_TYPE
+JOIN BANK_USERS
+ON BANK_USERS.type_id = USER_TYPE.id
+WHERE BANK_USERS.login = "login2" AND BANK_USERS.password = "password2";

@@ -1,0 +1,5 @@
+INSERT INTO OVERDRAFTS(credit_date, limit_date)
+VALUES ("01/01/2016", "01/01/2016");
+UPDATE BANK_ACCOUNTS
+SET overdraft_id = (SELECT id FROM OVERDRAFTS ORDER BY id DESC LIMIT 1)
+WHERE account_number = "87651234";
