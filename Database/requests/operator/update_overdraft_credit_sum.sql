@@ -1,0 +1,3 @@
+UPDATE OVERDRAFTS
+SET credit_sum = 0
+WHERE id = 1;
