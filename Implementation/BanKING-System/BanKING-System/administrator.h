@@ -27,16 +27,16 @@ const char* ADD_OVERDRAFT_REQUEST = "INSERT INTO OVERDRAFTS(credit_date, limit_d
 const char* UPDATE_OVERDRAFT_REQUEST = "UPDATE BANK_ACCOUNTS SET overdraft_id = (SELECT id FROM OVERDRAFTS ORDER BY id DESC LIMIT 1) \
 WHERE account_number = @account_number;";
 
-const char* CLOSE_ACCOUNT_REQUEST	= "DELETE FROM OVERDRAFTS WHERE id = (SELECT overdraft_id FROM BANK_ACCOUNTS WHERE account_number = @account_number); \
-DELETE FROM BANK_ACCOUNTS WHERE account_number = @account_number;";
+const char* REMOVE_OVERDRAFT_REQUEST	= "DELETE FROM OVERDRAFTS WHERE id = (SELECT overdraft_id FROM BANK_ACCOUNTS WHERE account_number = @account_number);";
+const char* CLOSE_ACCOUNT_REQUEST	= "DELETE FROM BANK_ACCOUNTS WHERE account_number = @account_number;";
 
-const char* REMOVE_OVDERDRAFT_REQUEST	= "DELETE FROM OVERDRAFTS WHERE id = (SELECT overdraft_id FROM BANK_ACCOUNTS WHERE account_number = @account_number); \
+const char* UPDATE_REMOVE_OVDERDRAFT_REQUEST	= "DELETE FROM OVERDRAFTS WHERE id = (SELECT overdraft_id FROM BANK_ACCOUNTS WHERE account_number = @account_number); \
 UPDATE BANK_ACCOUNTS SET overdraft_id = NULL WHERE account_number = @account_number;";
 
-const char* REMOVE_CLIENT_REQUEST	= "DELETE FROM OVERDRAFTS WHERE (SELECT passport_number FROM BANK_CLIENTS WHERE id = \
-(SELECT client_id FROM BANK_ACCOUNTS WHERE overdraft_id = OVERDRAFTS.id)) = @pasport_number; \
-DELETE FROM BANK_ACCOUNTS WHERE client_id = (SELECT id FROM BANK_CLIENTS WHERE passport_number = @passport_number); \
-DELETE FROM BANK_CLIENTS WHERE passport_number = @passport_number;";
+const char* REMOVE_CLIENT_OVERDRAFT_REQUEST	= "DELETE FROM OVERDRAFTS WHERE (SELECT passport_number FROM BANK_CLIENTS WHERE id = \
+(SELECT client_id FROM BANK_ACCOUNTS WHERE overdraft_id = OVERDRAFTS.id)) = @pasport_number;";
+const char* REMOVE_CLIENT_ACCOUNT_REQUEST	= "DELETE FROM BANK_ACCOUNTS WHERE client_id = (SELECT id FROM BANK_CLIENTS WHERE passport_number = @pasport_number);";
+const char* REMOVE_CLIENT_REQUEST = "DELETE FROM BANK_CLIENTS WHERE passport_number = @pasport_number;";
 
 const char* GET_FULL_ACCOUNT_INFORMATION_REQUEST = "SELECT BANK_ACCOUNTS.id, ACCOUNT_TYPE.type, BANK_ACCOUNTS.balance, BANK_ACCOUNTS.total_transactions, \
 BANK_ACCOUNTS.account_number, OVERDRAFTS.id, OVERDRAFTS.credit_sum, BANK_CLIENTS.id, BANK_ACCOUNTS.is_locked \
