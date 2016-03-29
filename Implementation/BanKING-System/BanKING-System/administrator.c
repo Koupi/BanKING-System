@@ -26,7 +26,11 @@ char* get_string_current_date()
 {
     return "12/20/2015";
 }
-
+int number_generate(int plus)
+{
+    srand((int)time(0)+plus);
+    return rand()%(99999999-10000000)+10000000;
+}
 //OK
 BOOL string_input(char* message, char* destination, int dest_length)
 {
@@ -184,11 +188,33 @@ void add_overdraft(int account_number)
         return;
 	}
 }
+void  remove_overdraft(int account_number)
+{
+	if(only_account_number_request(account_number,REMOVE_OVERDRAFT_REQUEST)!= SQLITE_DONE)
+	{
+		printf("Execution failed : %s", sqlite3_errmsg(db));
+        return;
+	}
+
+	if(only_account_number_request(account_number,UPDATE_REMOVE_OVERDRAFT_REQUEST)!= SQLITE_DONE)
+	{
+		printf("Execution failed : %s", sqlite3_errmsg(db));
+        return;
+	}
+}
+
 //ОК
 void add_client(char* firstname, char* lastname, char* pasport_number)
 {
     sqlite3_stmt *pStmt;
-    int rc = sqlite3_prepare_v2(db, ADD_CLIENT_REQUEST, -1, &pStmt, 0);
+    int rc =0;
+	if(only_pass_request(pasport_number,CHECK_CLIENT_REQUEST)==SQLITE_ROW)
+	{
+		printf("This client alrady exists\n");
+		return;
+	}
+	rc = sqlite3_prepare_v2(db, ADD_CLIENT_REQUEST, -1, &pStmt, 0);
+
     if (rc != SQLITE_OK)
     {
         printf("Cannot prepare statement: %s\n", sqlite3_errmsg(db));
@@ -265,6 +291,11 @@ void add_client_dialog()
 //OK
 BOOL remove_client(char* pasport_number)
 {
+	if(only_pass_request(pasport_number,CHECK_CLIENT_REQUEST)!=SQLITE_ROW)
+	{
+		printf("No such client\n");
+		return FALSE;
+	}
 	if(SQLITE_DONE!=only_pass_request(pasport_number, 	REMOVE_CLIENT_OVERDRAFT_REQUEST))
 	{
 		printf("Can't remove all overdrafts\n");
@@ -297,12 +328,7 @@ void remove_client_dialog()
     remove_client(pasport_number);
     free(pasport_number);
 }
-//ОК
-int number_generate(int plus)
-{
-    srand((int)time(0)+plus);
-    return rand()%(RAND_MAX-10000)+10000;
-}
+
 //ОК
 int add_account(char* passport_number, int acc_type, BOOL overdraft)
 {
@@ -394,9 +420,15 @@ void add_account_dialog()
         printf("Canceled");
         return;
     }
-     printf("Enter account type\n");
-     printf("(1) Current\n");
-     printf("(2) Saving\n");
+	if(only_pass_request(pasport_number,CHECK_CLIENT_REQUEST)!=SQLITE_ROW)
+	{
+		printf("This client doesn't exist\n");
+		free(pasport_number);
+		return;
+	}
+    printf("Enter account type\n");
+    printf("(1) Current\n");
+    printf("(2) Saving\n");
     BOOL end = FALSE;
     account_type acc_type = 0;
     while(!end)
@@ -539,6 +571,12 @@ void close_account_dialog()
             free(pasport_number);
             return;
         }
+		if(only_pass_request(pasport_number,CHECK_CLIENT_REQUEST)!=SQLITE_ROW)
+		{
+			printf("This client doesn't exist\n");
+			free(pasport_number);
+			return;
+		}
         int account_number = 0;
 		printf("Enter account_number:\n");
         while(!scanf("%d",&account_number)==1)
@@ -560,6 +598,11 @@ void change_type(int account_number, char* type)
     int rc = 0;
     sqlite3_stmt *pStmt;
     int index;
+	if(only_account_number_request(account_number, REMOVE_OVERDRAFT_REQUEST)!= SQLITE_DONE)
+    {
+        printf("error : %s", sqlite3_errmsg(db));
+        return;
+    }
     rc = sqlite3_prepare_v2(db, CHANGE_ACCOUNT_TYPE_REQUEST, -1, &pStmt, 0);
     if (rc != SQLITE_OK)
     {
@@ -578,12 +621,12 @@ void change_type(int account_number, char* type)
     }
     if(!write_text_not_null("@account_type", type, pStmt))
     {
-        printf("Faild creating");
+        printf("Faild creating\n");
         sqlite3_finalize(pStmt);
         return;
     }
     rc = sqlite3_step(pStmt);
-    if (rc != SQLITE_OK)
+    if (rc != SQLITE_DONE)
     {
         printf("error : %s", sqlite3_errmsg(db));
         sqlite3_finalize(pStmt);
@@ -595,12 +638,16 @@ BOOL current_account_dialog(BOOL with_overdraft, BOOL* changed, int account_numb
 {
     BOOL end = FALSE;
     printf("Choose option\n");
-    printf("(0) - Cancel");
+    printf("(0) - Cancel\n");
     printf("(1) - change type to saving\n");
-    if(with_overdraft)
+    if(!with_overdraft)
     {
         printf("(2) - Add overdraft\n");
     }
+	else
+	{
+		 printf("(2) - Remove overdraft\n");
+	}
     while(!end)
     {
         int option = 0;
@@ -621,13 +668,13 @@ BOOL current_account_dialog(BOOL with_overdraft, BOOL* changed, int account_numb
                 {
                     end = TRUE;
                     *changed = TRUE;
-                    change_type(account_number,"Saving");
+                    change_type(account_number,"SAVING");
                     clean_stdin();
                     return TRUE;
                 }
                 case 2:
                 {
-                    if(with_overdraft)
+                    if(!with_overdraft)
                     {
                         end = TRUE;
                         *changed = FALSE;
@@ -635,6 +682,14 @@ BOOL current_account_dialog(BOOL with_overdraft, BOOL* changed, int account_numb
                         clean_stdin();
                         return TRUE;
                     }
+					else
+					{
+						end = TRUE;
+                        *changed = FALSE;
+                        remove_overdraft(account_number);
+                        clean_stdin();
+                        return TRUE;
+					}
                 }
                 default:
                 {
@@ -648,7 +703,7 @@ BOOL current_account_dialog(BOOL with_overdraft, BOOL* changed, int account_numb
         {
             clean_stdin();
 
-            printf("Try again or 0 to cancel");
+            printf("Try again or 0 to cancel\n");
         }
     }
     return TRUE;
@@ -657,7 +712,7 @@ BOOL saving_account_dialog(int account_number)
 {
     BOOL end = FALSE;
     printf("Choose option\n");
-    printf("(0) - Cancel");
+    printf("(0) - Cancel\n");
     printf("(1) - change type to current\n");
 
     while(!end)
@@ -671,13 +726,13 @@ BOOL saving_account_dialog(int account_number)
                 {
                     end = TRUE;
                     clean_stdin();
-                    printf("Canceled");
+                    printf("Canceled\n");
                     return FALSE;
                 }
                 case 1:
                 {
                     end = TRUE;
-                    change_type(account_number,"Current");
+                    change_type(account_number,"CURRENT");
                     clean_stdin();
                     return TRUE;
                 }
@@ -709,12 +764,20 @@ void account_management_dialog()
      int index = 0;
      if(!string_input("Enter pasport number\n", pasport_number, buf_len+1))
      {
-         printf("Canceled");
+         printf("Canceled\n");
          free(pasport_number);
          return;
      }
+	 if(only_pass_request(pasport_number,CHECK_CLIENT_REQUEST)!=SQLITE_ROW)
+	 {
+		printf("This client doesn't exist\n");
+		free(pasport_number);
+		free(changed);
+
+		return;
+	 }
      int account_number = 0;
-     
+     printf("Enter account number\n");
      while(!scanf("%d",&account_number)==1)
      {
          if(account_number==0)
@@ -733,7 +796,6 @@ void account_management_dialog()
      rc = sqlite3_prepare_v2(db, GET_FULL_ACCOUNT_INFORMATION_REQUEST, -1, &pStmt, 0);
      if (rc != SQLITE_OK)
      {
-
          printf("Cannot prepare statement: %s\n", sqlite3_errmsg(db));
          sqlite3_finalize(pStmt);
          return;
@@ -755,10 +817,35 @@ void account_management_dialog()
      if (rc == SQLITE_ROW)
      {
          int i = 2;
+		 BOOL overdraft = FALSE;
          char* type = sqlite3_column_text(pStmt, i);
+		 int id_type = 0;
+		 printf(type);
+		 if(strcmp(type, "SAVING")==0)
+		 {
+			 id_type = 2;
+		 }
+		 else
+		 {
+			 id_type = 1;
+
+             if(SQLITE_NULL!=sqlite3_column_type(pStmt, 5))
+			 {
+				 printf("+");
+				 printf("%d",sqlite3_column_type(pStmt, 5));
+				 overdraft = TRUE;
+			 }
+			 else
+			 {
+				 overdraft = FALSE;
+				 printf("-");
+				 printf("%d",sqlite3_column_type(pStmt, 5));
+			 }
+		 }
+
          while(!end)
          {
-             if(strcmp(type, "SAVING")==0)
+             if(id_type==2)
              {
                  if(!saving_account_dialog(account_number))
                  {
@@ -766,17 +853,13 @@ void account_management_dialog()
                  }
                  else
                  {
-                     type ="CURRENT";
+                    id_type = 1;
                  }
              }
              else
              {
-                 BOOL overdraft = FALSE;
-                 if(SQLITE_NULL!=sqlite3_column_type(pStmt, 6))
-                 {
-                     overdraft = TRUE;
-                 }
-                 if(!current_account_dialog(overdraft, changed,account_number))
+
+                 if(!current_account_dialog(overdraft, changed, account_number))
                  {
                      end = TRUE;
                  }
@@ -784,8 +867,13 @@ void account_management_dialog()
                  {
                      if(*changed)
                      {
-                         type="SAVING";
+						 id_type = 2;
                      }
+					 else
+					 {
+						 printf("+");
+						 overdraft=!overdraft;
+					 }
                      
                  }
              }
@@ -808,8 +896,8 @@ int main()
         sqlite3_close(db);
         return 0;
     }
-//add_client_dialog();
-add_account_dialog();
+	account_management_dialog();
+	//remove_client_dialog();
     sqlite3_close(db);
     
 
