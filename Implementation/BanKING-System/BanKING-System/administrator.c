@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-
+typedef unsigned short RET_TYPE;
 void clean_stdin()
 {
     int c;
@@ -26,6 +26,8 @@ char* get_string_current_date()
 {
     return "12/20/2015";
 }
+
+//OK
 BOOL string_input(char* message, char* destination, int dest_length)
 {
     char *buf = (char*)malloc(sizeof(char)*(dest_length));
@@ -44,7 +46,7 @@ BOOL string_input(char* message, char* destination, int dest_length)
     free(buf);
     return TRUE;
 }
-
+//ок
 BOOL write_text_not_null(char* param, char* value, sqlite3_stmt *pStmt)
 {
     int indx = sqlite3_bind_parameter_index(pStmt, param);
@@ -59,6 +61,7 @@ BOOL write_text_not_null(char* param, char* value, sqlite3_stmt *pStmt)
     return TRUE;
 }
 
+//ок
 BOOL passport_account_validate(char* pasport_number, int account_number)
 {
     sqlite3_stmt *pStmt;
@@ -80,7 +83,7 @@ BOOL passport_account_validate(char* pasport_number, int account_number)
     }
     if(!write_text_not_null("@pasport_number", pasport_number, pStmt))
     {
-        printf("Faild creating");
+        printf("Faild creating\n");
         sqlite3_finalize(pStmt);
         return FALSE;
     }
@@ -88,7 +91,7 @@ BOOL passport_account_validate(char* pasport_number, int account_number)
     if (rc != SQLITE_ROW)
     {
         sqlite3_finalize(pStmt);
-        printf("No such account with this client: %d", account_number);
+        printf("No such account with this client: %d\n", account_number);
         return FALSE;
     }
 
@@ -96,47 +99,58 @@ BOOL passport_account_validate(char* pasport_number, int account_number)
     return TRUE;
     
 }
+//OK
+RET_TYPE only_pass_request(char* pasport_number, const char* STMT)
+{
+	sqlite3_stmt *pStmt;
+    int rc = sqlite3_prepare_v2(db, STMT, -1, &pStmt, 0);
+    if (rc != SQLITE_OK)
+    {
+        printf("Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(pStmt);
+        return SQLITE_ERROR;
+    }
+    if(!write_text_not_null("@pasport_number", pasport_number, pStmt))
+    {
+        printf("Faild creating");
+        sqlite3_finalize(pStmt);
+        return SQLITE_ERROR;
+    }
+    rc = sqlite3_step(pStmt);
+	sqlite3_finalize(pStmt);
+	return rc;
+
+}
+//OK
+RET_TYPE only_account_number_request(int account_number, const char* STMT)
+{
+	sqlite3_stmt *pStmt;
+	int rc = sqlite3_prepare_v2(db, STMT, -1, &pStmt, 0);
+    if (rc != SQLITE_OK)
+    {
+        printf("Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(pStmt);
+        return SQLITE_ERROR;
+    }
+	int index = sqlite3_bind_parameter_index(pStmt, "@account_number");
+	//printf("ind =  %d %d", index, account_number);
+    if(	sqlite3_bind_int(pStmt, index, account_number)!= SQLITE_OK)
+    {
+        printf("Failed binding %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(pStmt);
+        return SQLITE_ERROR;
+    }
+	rc = sqlite3_step(pStmt);
+	sqlite3_finalize(pStmt);
+	return rc;
+
+}
+//ОК
 void add_overdraft(int account_number)
 {
     sqlite3_stmt *pStmt;
     int index;
     int rc  = 0;
-    /*int rc = sqlite3_prepare_v2(db, GET_FULL_ACCOUNT_INFORMATION_REQUEST, -1, &pStmt, 0);
-     
-     if (rc != SQLITE_OK)
-     {
-     printf("Cannot prepare statement: %s\n", sqlite3_errmsg(db));
-     sqlite3_finalize(pStmt);
-     return;
-     }
-     indx = sqlite3_bind_parameter_index(pStmt, "@account_type");
-     if(	sqlite3_bind_int(pStmt, indx, account_type)!= SQLITE_OK)
-     {
-     sqlite3_finalize(pStmt);
-     printf("Failed binding");
-     return 0;
-     }
-     rc = sqlite3_step(pStmt);
-     if (rc == SQLITE_ROW)
-     {
-     int i = 5;
-     char* pass = sqlite3_column_text(pStmt, i));
-     if(!strcmp(pass,passport_number))
-     {
-     sqlite3_finalize(pStmt);
-     printf("Invalide passport number: %d", passport_number);
-     return FALSE;
-     }
-     }
-     else
-     {
-     sqlite3_finalize(pStmt);
-     printf("No such account: %d", account_number);
-     return FALSE;
-     }
-     sqlite3_finalize(pStmt);
-     pStmt = NULL;
-     */
     rc = sqlite3_prepare_v2(db, ADD_OVERDRAFT_REQUEST, -1, &pStmt, 0);
     if (rc != SQLITE_OK)
     {
@@ -164,30 +178,13 @@ void add_overdraft(int account_number)
         return;
     }
 	sqlite3_finalize(pStmt);
-	rc = sqlite3_prepare_v2(db, UPDATE_OVERDRAFT_REQUEST, -1, &pStmt, 0);
-    if (rc != SQLITE_OK)
-    {
-        printf("Cannot prepare statement: %s\n", sqlite3_errmsg(db));
-        sqlite3_finalize(pStmt);
+	if(only_account_number_request(account_number,UPDATE_OVERDRAFT_REQUEST)!= SQLITE_DONE)
+	{
+		printf("Execution failed : %s", sqlite3_errmsg(db));
         return;
-    }
-	index = sqlite3_bind_parameter_index(pStmt, "@account_number");
-	printf("ind =  %d %d", index, account_number);
-    if(	sqlite3_bind_int(pStmt, index, account_number)!= SQLITE_OK)
-    {
-        printf("Failed binding %s\n", sqlite3_errmsg(db));
-		sqlite3_finalize(pStmt);
-        return;
-    }
-	rc = sqlite3_step(pStmt);
-    if (rc != SQLITE_DONE)
-    {
-        printf("Execution failed : %s", sqlite3_errmsg(db));
-        sqlite3_finalize(pStmt);
-        return;
-    }
-    sqlite3_finalize(pStmt);
+	}
 }
+//ОК
 void add_client(char* firstname, char* lastname, char* pasport_number)
 {
     sqlite3_stmt *pStmt;
@@ -226,7 +223,7 @@ void add_client(char* firstname, char* lastname, char* pasport_number)
     sqlite3_finalize(pStmt);
     
 }
-
+//ОК
 void add_client_dialog()
 {
     int buf_len = 50;
@@ -264,33 +261,28 @@ void add_client_dialog()
     free(lastname);
     free(pasport_number);
 }
+
+//OK
 BOOL remove_client(char* pasport_number)
 {
-    sqlite3_stmt *pStmt;
-
-    int rc = sqlite3_prepare_v2(db, REMOVE_CLIENT_REQUEST, -1, &pStmt, 0);
-    if (rc != SQLITE_OK)
-    {
-        printf("Cannot prepare statement: %s\n", sqlite3_errmsg(db));
-        sqlite3_finalize(pStmt);
-        return FALSE;
-    }
-    if(!write_text_not_null("@pasport_number", pasport_number, pStmt))
-    {
-        printf("Faild creating");
-        sqlite3_finalize(pStmt);
-        return FALSE;
-    }
-    rc = sqlite3_step(pStmt);
-    if (rc != SQLITE_OK)
-    {
-        printf("Execution failed or no such number: %s", sqlite3_errmsg(db));
-        sqlite3_finalize(pStmt);
-        return FALSE;
-    }
-    sqlite3_finalize(pStmt);
+	if(SQLITE_DONE!=only_pass_request(pasport_number, 	REMOVE_CLIENT_OVERDRAFT_REQUEST))
+	{
+		printf("Can't remove all overdrafts\n");
+		return FALSE;
+	}
+	if(SQLITE_DONE!=only_pass_request(pasport_number, 	REMOVE_CLIENT_ACCOUNT_REQUEST))
+	{
+		printf("Can't remove all accounts\n");
+		return FALSE;
+	}
+	if(SQLITE_DONE!=only_pass_request(pasport_number, 	REMOVE_CLIENT_REQUEST))
+	{
+		printf("Can't remove all accounts\n");
+		return FALSE;
+	}
     return TRUE;
 }
+//OK
 void remove_client_dialog()
 {
     int buf_len = 50;
@@ -305,15 +297,16 @@ void remove_client_dialog()
     remove_client(pasport_number);
     free(pasport_number);
 }
+//ОК
 int number_generate(int plus)
 {
     srand((int)time(0)+plus);
     return rand()%(RAND_MAX-10000)+10000;
 }
+//ОК
 int add_account(char* passport_number, int acc_type, BOOL overdraft)
 {
     sqlite3_stmt *pStmt;
-	sqlite3_stmt *pStmt_check;
     int index;
     int account_number = 0;
     int tryal = 0;
@@ -353,31 +346,12 @@ int add_account(char* passport_number, int acc_type, BOOL overdraft)
     {
         account_number = number_generate(5*tryal);
         tryal++;
-		rc = sqlite3_prepare_v2(db, CHECK_ACCOUNT_REQUEST, -1, &pStmt_check, 0);
-		if (rc != SQLITE_OK)
-		{
-			printf("Cannot prepare statement: %s\n", sqlite3_errmsg(db));
-			sqlite3_finalize(pStmt);
-			sqlite3_finalize(pStmt_check);
-			return FALSE;
-		 }
-		index = sqlite3_bind_parameter_index(pStmt_check, "@account_number");
-		printf("My number %d\n", account_number );
-		if(	sqlite3_bind_int(pStmt_check, index, account_number)!= SQLITE_OK)
-        {
-                printf("Failed binding %s\n", sqlite3_errmsg(db));
-				sqlite3_finalize(pStmt);
-                return 0;
-        }
-		rc = sqlite3_step(pStmt_check);
-		if(rc==SQLITE_ROW)
+		if(only_account_number_request(account_number,CHECK_ACCOUNT_REQUEST)== SQLITE_ROW)
 		{
 			end = FALSE;
-			sqlite3_finalize(pStmt_check);
 		}
 		else
 		{
-			sqlite3_finalize(pStmt_check);
 			//one or many times
 			index = sqlite3_bind_parameter_index(pStmt, "@account_number");
 			printf("My number %d\n", account_number );
@@ -408,6 +382,7 @@ int add_account(char* passport_number, int acc_type, BOOL overdraft)
     return account_number;
             
 }
+//ОК
 void add_account_dialog()
 {
     int buf_len = 50;
@@ -533,37 +508,25 @@ void add_account_dialog()
         printf("Account number created: %d", account_number);
     }
 }
+
 BOOL close_account(char* pasport_number, int account_number)
 {
-    sqlite3_stmt *pStmt;
-    int index;
+    int index = 0;
     int rc = 0;
     if(!passport_account_validate(pasport_number, account_number))
     {
         return FALSE;
     }
-    rc = sqlite3_prepare_v2(db, CLOSE_ACCOUNT_REQUEST, -1, &pStmt, 0);
-    if (rc != SQLITE_OK)
-    {
-        printf("Cannot prepare statement: %s\n", sqlite3_errmsg(db));
-        sqlite3_finalize(pStmt);
-        return FALSE;
-    }
-        index = sqlite3_bind_parameter_index(pStmt, "@account_number");
-    if(	sqlite3_bind_int(pStmt, index, account_number)!= SQLITE_OK)
-    {
-        sqlite3_finalize(pStmt);
-        printf("Failed binding");
-        return FALSE;
-    }
-    rc = sqlite3_step(pStmt);
-    if (rc != SQLITE_OK)
+	if(only_account_number_request(account_number, REMOVE_OVERDRAFT_REQUEST)!= SQLITE_DONE)
     {
         printf("error : %s", sqlite3_errmsg(db));
-        sqlite3_finalize(pStmt);
         return FALSE;
     }
-    sqlite3_finalize(pStmt);
+	if(only_account_number_request(account_number, CLOSE_ACCOUNT_REQUEST)!= SQLITE_DONE)
+    {
+        printf("error : %s", sqlite3_errmsg(db));
+        return FALSE;
+    }
     return TRUE;
 }
 void close_account_dialog()
@@ -577,6 +540,7 @@ void close_account_dialog()
             return;
         }
         int account_number = 0;
+		printf("Enter account_number:\n");
         while(!scanf("%d",&account_number)==1)
         {
             if(account_number==0)
@@ -586,7 +550,7 @@ void close_account_dialog()
                 return;
             }
             clean_stdin();
-            printf("Try again or 0 to cancel");
+            printf("Try again or 0 to cancel\n");
         }
     close_account(pasport_number,account_number);
     free(pasport_number);
@@ -720,7 +684,7 @@ BOOL saving_account_dialog(int account_number)
                 default:
                 {
                     clean_stdin();
-                    printf("Try again or 0 to cancel");
+                    printf("Try again or 0 to cancel\n");
                     break;
                 }
             }
@@ -728,7 +692,7 @@ BOOL saving_account_dialog(int account_number)
         else
         {
             clean_stdin();
-            printf("Try again or 0 to cancel");
+            printf("Try again or 0 to cancel\n");
         }
     }
     return TRUE;
@@ -760,7 +724,7 @@ void account_management_dialog()
              return;
          }
          clean_stdin();
-         printf("Try again or 0 to cancel");
+         printf("Try again or 0 to cancel\n");
      }
      if(!passport_account_validate(pasport_number, account_number))
      {
@@ -783,7 +747,7 @@ void account_management_dialog()
      }
      if(!write_text_not_null("@pasport_number", pasport_number, pStmt))
      {
-         printf("Faild creating");
+         printf("Faild creating\n");
          sqlite3_finalize(pStmt);
          return;
      }
@@ -844,7 +808,8 @@ int main()
         sqlite3_close(db);
         return 0;
     }
-	add_account_dialog();
+//add_client_dialog();
+add_account_dialog();
     sqlite3_close(db);
     
 
