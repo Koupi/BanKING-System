@@ -210,7 +210,13 @@ BOOL withdraw(int sum, int account_number, char* passport_number)
     int credit_sum = sqlite3_column_int(pStmt, 6);
     int overdraft_id = sqlite3_column_int(pStmt, 5);
     int transaction_counter = sqlite3_column_int(pStmt, 3);
+    BOOL is_locked = sqlite3_column_int(pStmt, 8);
     sqlite3_finalize(pStmt);
+    if(is_locked)
+    {
+        printf("Account is locked!");
+        return FALSE;
+    }
     // Calculating sum
     if(balance < sum)
     {
@@ -345,7 +351,13 @@ BOOL transfer(int sum, int transfering_from_account_number, int transfering_to_a
     int credit_sum_from = sqlite3_column_int(pStmt, 6);
     int overdraft_id_from = sqlite3_column_int(pStmt, 5);
     int transaction_from_counter = sqlite3_column_int(pStmt, 3);
+    BOOL is_locked = sqlite3_column_int(pStmt, 8);
     sqlite3_finalize(pStmt);
+    if(is_locked)
+    {
+        printf("Account is locked!");
+        return FALSE;
+    }
     // Getting full info about transfering to account
     indx = 0;
     rc = sqlite3_prepare_v2(db, FULL_INFO_ABOUT_ACCOUNT_REQUEST, -1, &pStmt, 0);
