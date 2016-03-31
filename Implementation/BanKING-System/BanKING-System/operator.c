@@ -33,7 +33,7 @@ BOOL enroll(int sum, int account_number, char* passport_number)
     // Getting full info about account
     sqlite3_stmt *pStmt;
     int indx = 0;
-    int rc = sqlite3_prepare_v2(db, FULL_INFO_ABOUT_ACCOUNT_REQUEST, -1, &pStmt, 0);
+    int rc = sqlite3_prepare_v2(db, GET_FULL_ACCOUNT_INFORMATION_REQUEST, -1, &pStmt, 0);
     if (rc != SQLITE_OK)
     {
         printf("Cannot prepare statement: %s\n", sqlite3_errmsg(db));
@@ -176,7 +176,7 @@ BOOL withdraw(int sum, int account_number, char* passport_number)
     // Getting full info about account
     sqlite3_stmt *pStmt;
     int indx = 0;
-    int rc = sqlite3_prepare_v2(db, FULL_INFO_ABOUT_ACCOUNT_REQUEST, -1, &pStmt, 0);
+    int rc = sqlite3_prepare_v2(db, GET_FULL_ACCOUNT_INFORMATION_REQUEST, -1, &pStmt, 0);
     if (rc != SQLITE_OK)
     {
         printf("Cannot prepare statement: %s\n", sqlite3_errmsg(db));
@@ -317,7 +317,7 @@ BOOL transfer(int sum, int transfering_from_account_number, int transfering_to_a
     // Getting full info about transfering from account
     sqlite3_stmt *pStmt;
     int indx = 0;
-    int rc = sqlite3_prepare_v2(db, FULL_INFO_ABOUT_ACCOUNT_REQUEST, -1, &pStmt, 0);
+    int rc = sqlite3_prepare_v2(db, GET_FULL_ACCOUNT_INFORMATION_REQUEST, -1, &pStmt, 0);
     if (rc != SQLITE_OK)
     {
         printf("Cannot prepare statement: %s\n", sqlite3_errmsg(db));
@@ -360,7 +360,7 @@ BOOL transfer(int sum, int transfering_from_account_number, int transfering_to_a
     }
     // Getting full info about transfering to account
     indx = 0;
-    rc = sqlite3_prepare_v2(db, FULL_INFO_ABOUT_ACCOUNT_REQUEST, -1, &pStmt, 0);
+    rc = sqlite3_prepare_v2(db, GET_FULL_ACCOUNT_INFORMATION_REQUEST, -1, &pStmt, 0);
     if (rc != SQLITE_OK)
     {
         printf("Cannot prepare statement: %s\n", sqlite3_errmsg(db));
