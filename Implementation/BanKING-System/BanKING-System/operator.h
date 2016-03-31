@@ -26,7 +26,7 @@ const char* UPDATE_ACCOUNT_BALANCE_REQUEST = "UPDATE BANK_ACCOUNTS SET balance =
 
 const char* UPDATE_OVERDRAFT_CREDIT_SUM_REQUEST = "UPDATE OVERDRAFTS SET credit_sum = @credit_sum WHERE id = @id;";
 
-const char* UPDATE_OVERDRAFT_INFO_REQUEST = "UPDATE OVERDRAFTS SET credit_sum = @credit_sum, credit_date = @credit_date, limit_date = @limitdate WHERE id = @id;";
+const char* UPDATE_OVERDRAFT_INFO_REQUEST = "UPDATE OVERDRAFTS SET credit_sum = @credit_sum, credit_date = @credit_date, limit_date = @limit_date WHERE id = @id;";
 
 const char* UPDATE_TOTAL_TRANSACTIONS = "UPDATE BANK_ACCOUNTS SET total_transactions = @total_transactions WHERE id = @id;";
 

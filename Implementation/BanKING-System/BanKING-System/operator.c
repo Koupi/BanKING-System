@@ -211,6 +211,7 @@ BOOL withdraw(int sum, int account_number, char* passport_number)
     int overdraft_id = sqlite3_column_int(pStmt, 5);
     int transaction_counter = sqlite3_column_int(pStmt, 3);
     BOOL is_locked = sqlite3_column_int(pStmt, 8);
+    BOOL check = FALSE;
     sqlite3_finalize(pStmt);
     if(is_locked)
     {
@@ -220,6 +221,10 @@ BOOL withdraw(int sum, int account_number, char* passport_number)
     // Calculating sum
     if(balance < sum)
     {
+        if(credit_sum == 0)
+        {
+            check = TRUE;
+        }
         int difference = sum - balance;
         balance = 0;
         credit_sum += difference;
@@ -256,31 +261,97 @@ BOOL withdraw(int sum, int account_number, char* passport_number)
     rc = sqlite3_step(pStmt);
     sqlite3_finalize(pStmt);
     // Updating overdraft credit sum
-    rc = sqlite3_prepare_v2(db, UPDATE_OVERDRAFT_CREDIT_SUM_REQUEST, -1, &pStmt, 0);
-    if (rc != SQLITE_OK)
+    if(check)
     {
-        printf("Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        rc = sqlite3_prepare_v2(db, UPDATE_OVERDRAFT_INFO_REQUEST, -1, &pStmt, 0);
+        if (rc != SQLITE_OK)
+        {
+            printf("Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+            sqlite3_finalize(pStmt);
+            return FALSE;
+        }
+        indx = sqlite3_bind_parameter_index(pStmt, "@credit_sum");
+        if(	sqlite3_bind_int(pStmt, indx, credit_sum)!= SQLITE_OK)
+        {
+            sqlite3_finalize(pStmt);
+            printf("Failed binding");
+            return 0;
+        }
+        indx = sqlite3_bind_parameter_index(pStmt, "@id");
+        if(	sqlite3_bind_int(pStmt, indx, overdraft_id)!= SQLITE_OK)
+        {
+            sqlite3_finalize(pStmt);
+            printf("Failed binding");
+            return 0;
+        }
+        int size = 11;
+        char *current_date = (char*)malloc(sizeof(char)*(size));
+        get_string_current_date(current_date, size);
+        date current_date_struct = parse_date(current_date);
+        if(!write_text_not_null("@credit_date", current_date, pStmt))
+        {
+            printf("Faild creating\n");
+            sqlite3_finalize(pStmt);
+            return FALSE;
+        }
+        data limit_date_struct;
+        if(current_date_struct.month == 12)
+        {
+            limit_date_struct.month = 1;
+            limit_date_struct.year = current_date_struct.year + 1;
+        }
+        else
+        {
+            limit_date_struct.month = current_date_struct.month + 1;
+            limit_date_struct.year = current_date_struct.year;
+        }
+        if(current_date_struct.day > 28)
+        {
+            limit_date_struct.day = 28;
+        }
+        else
+        {
+            limit_date_struct.day = current_date_struct.day;
+        }
+        char *limit_date = (char*)malloc(sizeof(char)*(size));
+        get_string_date(limit_date, size, limit_date_struct);
+        if(!write_text_not_null("@limit_date", limit_date, pStmt))
+        {
+            printf("Faild creating\n");
+            sqlite3_finalize(pStmt);
+            return FALSE;
+        }
+        rc = sqlite3_step(pStmt);
         sqlite3_finalize(pStmt);
-        return FALSE;
     }
-    
-    indx = sqlite3_bind_parameter_index(pStmt, "@credit_sum");
-    if(	sqlite3_bind_int(pStmt, indx, credit_sum)!= SQLITE_OK)
+    else
     {
+        rc = sqlite3_prepare_v2(db, UPDATE_OVERDRAFT_CREDIT_SUM_REQUEST, -1, &pStmt, 0);
+        if (rc != SQLITE_OK)
+        {
+            printf("Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+            sqlite3_finalize(pStmt);
+            return FALSE;
+        }
+        
+        indx = sqlite3_bind_parameter_index(pStmt, "@credit_sum");
+        if(	sqlite3_bind_int(pStmt, indx, credit_sum)!= SQLITE_OK)
+        {
+            sqlite3_finalize(pStmt);
+            printf("Failed binding");
+            return 0;
+        }
+        
+        indx = sqlite3_bind_parameter_index(pStmt, "@id");
+        if(	sqlite3_bind_int(pStmt, indx, overdraft_id)!= SQLITE_OK)
+        {
+            sqlite3_finalize(pStmt);
+            printf("Failed binding");
+            return 0;
+        }
+        rc = sqlite3_step(pStmt);
         sqlite3_finalize(pStmt);
-        printf("Failed binding");
-        return 0;
     }
-    
-    indx = sqlite3_bind_parameter_index(pStmt, "@id");
-    if(	sqlite3_bind_int(pStmt, indx, overdraft_id)!= SQLITE_OK)
-    {
-        sqlite3_finalize(pStmt);
-        printf("Failed binding");
-        return 0;
-    }
-    rc = sqlite3_step(pStmt);
-    sqlite3_finalize(pStmt);
     // Updating total transactions
     transaction_counter++;
     rc = sqlite3_prepare_v2(db, UPDATE_TOTAL_TRANSACTIONS, -1, &pStmt, 0);
@@ -394,10 +465,15 @@ BOOL transfer(int sum, int transfering_from_account_number, int transfering_to_a
     int transaction_to_counter = sqlite3_column_int(pStmt, 3);
     int credit_sum_to = sqlite3_column_int(pStmt, 6);
     int overdraft_id_to = sqlite3_column_int(pStmt, 5);
+    BOOL check = FALSE;
     sqlite3_finalize(pStmt);
     
     if(balance_from < sum)
     {
+        if(credit_sum_from == 0)
+        {
+            check = TRUE;
+        }
         int diff = credit_sum_from - sum;
         balance_from = 0;
         credit_sum_from += diff;
@@ -479,31 +555,98 @@ BOOL transfer(int sum, int transfering_from_account_number, int transfering_to_a
     rc = sqlite3_step(pStmt);
     sqlite3_finalize(pStmt);
     // Updating credit_sum_from
-    rc = sqlite3_prepare_v2(db, UPDATE_OVERDRAFT_CREDIT_SUM_REQUEST, -1, &pStmt, 0);
-    if (rc != SQLITE_OK)
+    if(check)
     {
-        printf("Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        rc = sqlite3_prepare_v2(db, UPDATE_OVERDRAFT_INFO_REQUEST, -1, &pStmt, 0);
+        if (rc != SQLITE_OK)
+        {
+            printf("Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+            sqlite3_finalize(pStmt);
+            return FALSE;
+        }
+        indx = sqlite3_bind_parameter_index(pStmt, "@credit_sum");
+        if(	sqlite3_bind_int(pStmt, indx, credit_sum_from)!= SQLITE_OK)
+        {
+            sqlite3_finalize(pStmt);
+            printf("Failed binding");
+            return 0;
+        }
+        indx = sqlite3_bind_parameter_index(pStmt, "@id");
+        if(	sqlite3_bind_int(pStmt, indx, overdraft_id_from)!= SQLITE_OK)
+        {
+            sqlite3_finalize(pStmt);
+            printf("Failed binding");
+            return 0;
+        }
+        int size = 11;
+        char *current_date = (char*)malloc(sizeof(char)*(size));
+        get_string_current_date(current_date, size);
+        date current_date_struct = parse_date(current_date);
+        if(!write_text_not_null("@credit_date", current_date, pStmt))
+        {
+            printf("Faild creating\n");
+            sqlite3_finalize(pStmt);
+            return FALSE;
+        }
+        data limit_date_struct;
+        if(current_date_struct.month == 12)
+        {
+            limit_date_struct.month = 1;
+            limit_date_struct.year = current_date_struct.year + 1;
+        }
+        else
+        {
+            limit_date_struct.month = current_date_struct.month + 1;
+            limit_date_struct.year = current_date_struct.year;
+        }
+        if(current_date_struct.day > 28)
+        {
+            limit_date_struct.day = 28;
+        }
+        else
+        {
+            limit_date_struct.day = current_date_struct.day;
+        }
+        char *limit_date = (char*)malloc(sizeof(char)*(size));
+        get_string_date(limit_date, size, limit_date_struct);
+        if(!write_text_not_null("@limit_date", limit_date, pStmt))
+        {
+            printf("Faild creating\n");
+            sqlite3_finalize(pStmt);
+            return FALSE;
+        }
+        rc = sqlite3_step(pStmt);
         sqlite3_finalize(pStmt);
-        return FALSE;
     }
-    
-    indx = sqlite3_bind_parameter_index(pStmt, "@credit_sum");
-    if(	sqlite3_bind_int(pStmt, indx, credit_sum_from)!= SQLITE_OK)
+    else
     {
+        
+        rc = sqlite3_prepare_v2(db, UPDATE_OVERDRAFT_CREDIT_SUM_REQUEST, -1, &pStmt, 0);
+        if (rc != SQLITE_OK)
+        {
+            printf("Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+            sqlite3_finalize(pStmt);
+            return FALSE;
+        }
+        
+        indx = sqlite3_bind_parameter_index(pStmt, "@credit_sum");
+        if(	sqlite3_bind_int(pStmt, indx, credit_sum_from)!= SQLITE_OK)
+        {
+            sqlite3_finalize(pStmt);
+            printf("Failed binding");
+            return 0;
+        }
+        
+        indx = sqlite3_bind_parameter_index(pStmt, "@id");
+        if(	sqlite3_bind_int(pStmt, indx, overdraft_id_from)!= SQLITE_OK)
+        {
+            sqlite3_finalize(pStmt);
+            printf("Failed binding");
+            return 0;
+        }
+        rc = sqlite3_step(pStmt);
         sqlite3_finalize(pStmt);
-        printf("Failed binding");
-        return 0;
     }
-    
-    indx = sqlite3_bind_parameter_index(pStmt, "@id");
-    if(	sqlite3_bind_int(pStmt, indx, overdraft_id_from)!= SQLITE_OK)
-    {
-        sqlite3_finalize(pStmt);
-        printf("Failed binding");
-        return 0;
-    }
-    rc = sqlite3_step(pStmt);
-    sqlite3_finalize(pStmt);
     // Updating credit_sum_to
     rc = sqlite3_prepare_v2(db, UPDATE_OVERDRAFT_CREDIT_SUM_REQUEST, -1, &pStmt, 0);
     if (rc != SQLITE_OK)
