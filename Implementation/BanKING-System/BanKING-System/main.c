@@ -8,6 +8,8 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <termios.h>
+#include <unistd.h>
 #include "system.h"
 #include "operator.h"
 #include "administrator.h"
@@ -31,11 +33,48 @@ int main(int argc, const char * argv[]) {
     return 0;
 }
 
+/*
+ 
+ int main(int argc, const char * argv[]) {
+ char password[40];
+ int i = 0;
+ char c = 0;
+ struct termios oldt, newt;
+ int ch;
+ tcgetattr(STDIN_FILENO, &oldt);
+ newt = oldt;
+ newt.c_lflag &= ~(ICANON | ECHO);
+ tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+ while(1)
+ {
+ c = getchar();
+ if(c == 0)
+ {
+ c = getchar();
+ }
+ if(c == '\n' || c == '\r' || i == 39)
+ {
+ password[i] = 0;
+ tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+ printf("\n");
+ break;
+ }
+ password[i] = c;
+ i++;
+ printf("*");
+ }
+ printf("You entered: %s\n", password);
+ return 0;
+ }
+ */
 void user_login()
 {
     char login[40];
     char password[40];
     user_type user = NOT_EXIST;
+    int i = 0;
+    char c = 0;
+    struct termios oldt, newt;
     while(user == NOT_EXIST)
     {
         printf("Enter your login (q - to exit):\n");
@@ -50,8 +89,32 @@ void user_login()
         printf("Enter your password:\n");
         fpurge(stdin);
         memset(password,0, sizeof(password));
-        fgets(password,sizeof(login)-1,stdin);
-        password[strlen(password)-1]=0;
+        
+        tcgetattr(STDIN_FILENO, &oldt);
+        newt = oldt;
+        newt.c_lflag &= ~(ICANON | ECHO);
+        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+        while(1)
+        {
+            c = getchar();
+            if(c == 0)
+            {
+                c = getchar();
+            }
+            if(c == '\n' || c == '\r' || i == sizeof(password)-1)
+            {
+                password[i] = 0;
+                tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+                printf("\n");
+                break;
+            }
+            password[i] = c;
+            i++;
+            printf("*");
+        }
+        /*
+        fgets(password,sizeof(password)-1,stdin);
+        password[strlen(password)-1]=0;*/
         user = authorization(login, password);
         switch(user)
         {
