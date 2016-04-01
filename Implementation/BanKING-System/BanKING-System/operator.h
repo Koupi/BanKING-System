@@ -9,8 +9,6 @@
 #ifndef operator_h
 #define operator_h
 
-#include <stdio.h>
-#include <sqlite3.h>
 
 void enroll_dialog();
 void withdraw_dialog();

@@ -7,6 +7,7 @@
 //
 
 #include "administrator.h"
+#include "system.h"
 #include <sqlite3.h>
 #include <stdio.h>
 #include <string.h>
@@ -14,14 +15,7 @@
 #include <time.h>
 
 typedef unsigned short RET_TYPE;
-void clean_stdin()
-{
-    int c;
-    do
-    {
-        c = getchar();
-    } while (c != '\n' && c != EOF);
-}
+
 int number_generate(int plus)
 {
     srand((int)time(0)+plus);
@@ -37,7 +31,7 @@ BOOL string_input(char* message, char* destination, int dest_length)
     while(!fgets(buf,dest_length-1,stdin))
     {
         printf("Try again or press 0 to escape\n");
-        clean_stdin();
+        fpurge(stdin);
         memset(buf, 0, dest_length);
     }
     if(buf[0]=='0')
@@ -53,7 +47,7 @@ BOOL write_text_not_null(char* param, char* value, sqlite3_stmt *pStmt)
     int indx = sqlite3_bind_parameter_index(pStmt, param);
     if(value[0]!='0')
     {
-        if(sqlite3_bind_text (pStmt,indx,value, strlen(value), SQLITE_STATIC)!= SQLITE_OK)
+        if(sqlite3_bind_text (pStmt,indx,value, (int)strlen(value), SQLITE_STATIC)!= SQLITE_OK)
         {
             return FALSE;
         }
@@ -142,7 +136,6 @@ RET_TYPE only_account_number_request(int account_number, const char* STMT)
 BOOL add_overdraft(int account_number)
 {
     sqlite3_stmt *pStmt;
-    int index;
     int rc  = 0;
     rc = sqlite3_prepare_v2(db, ADD_OVERDRAFT_REQUEST, -1, &pStmt, 0);
     if (rc != SQLITE_OK)
@@ -330,7 +323,7 @@ int add_account(char* passport_number, int acc_type, BOOL overdraft)
     int tryal = 0;
     BOOL end = FALSE;
     int rc = 0;
-    char* account_type;
+    char* account_type = "CURRENT";
     rc = sqlite3_prepare_v2(db, ADD_ACCOUNT_REQUEST, -1, &pStmt, 0);
     if (rc != SQLITE_OK)
     {
@@ -437,7 +430,7 @@ void add_account_dialog()
                 free(pasport_number);
                 pasport_number = NULL;
 				printf("Canceled\n");
-				clean_stdin();
+				fpurge(stdin);
                 return;
                 break;
             }
@@ -445,7 +438,7 @@ void add_account_dialog()
               {
                   end = TRUE;
                   acc_type = CURRENT;
-                  clean_stdin();
+                  fpurge(stdin);
                   break;
               }
             case 2:
@@ -453,12 +446,12 @@ void add_account_dialog()
 
                     end = TRUE;
                     acc_type = SAVING;
-                    clean_stdin();
+                    fpurge(stdin);
                     break;
                 }
             default:
                 {
-                    clean_stdin();
+                    fpurge(stdin);
                     printf("Try again or press 0 to cancel\n");
                     break;
                 }
@@ -467,7 +460,7 @@ void add_account_dialog()
 
         else
         {
-            clean_stdin();
+            fpurge(stdin);
             printf("Try again or press 0 to cancel\n");
         }
     }
@@ -490,27 +483,27 @@ void add_account_dialog()
                                free(pasport_number);
                                pasport_number = NULL;
                                printf("Canceled\n");
-							   clean_stdin();
+							   fpurge(stdin);
                                break;
                            }
                        case 1:
                            {
                                end = TRUE;
                                account_number = add_account(pasport_number, acc_type, TRUE);
-                               clean_stdin();
+                               fpurge(stdin);
                                break;
                            }
                        case 2:
                            {
                                end = TRUE;
                                account_number = add_account(pasport_number, acc_type, FALSE);
-                               clean_stdin();
+                               fpurge(stdin);
                                break;
                                
                            }
                        default:
                            {
-                               clean_stdin();
+                               fpurge(stdin);
                                printf("Try again press or 0 to cancel\n");
                                break;
                            }
@@ -519,7 +512,7 @@ void add_account_dialog()
             else
             {
 
-                clean_stdin();
+                fpurge(stdin);
                 printf("Try again or press 0 to cancel\n");
             }
         }
@@ -536,8 +529,6 @@ void add_account_dialog()
 
 BOOL close_account(char* pasport_number, int account_number)
 {
-    int index = 0;
-    int rc = 0;
     if(!passport_account_validate(pasport_number, account_number))
     {
         return FALSE;
@@ -572,10 +563,10 @@ void close_account_dialog()
 	printf("Enter account_number:\n");
 	while(scanf("%d",&account_number)!=1)
 	{
-		clean_stdin();
+		fpurge(stdin);
 		printf("Try again or 0 to cancel\n");
 	}
-	clean_stdin();
+	fpurge(stdin);
 	if(account_number==0)
 	{
 		free(pasport_number);
@@ -656,7 +647,7 @@ BOOL current_account_dialog(BOOL with_overdraft, BOOL* changed, int account_numb
                 case 0:
                 {
                     end = TRUE;
-                    clean_stdin();
+                    fpurge(stdin);
                     printf("Canceled\n");
                     *changed = FALSE;
                     return FALSE;
@@ -674,7 +665,7 @@ BOOL current_account_dialog(BOOL with_overdraft, BOOL* changed, int account_numb
 					{
 						printf("Operation succeed\n");
 					}
-                    clean_stdin();
+                    fpurge(stdin);
                     return TRUE;
                 }
                 case 2:
@@ -691,7 +682,7 @@ BOOL current_account_dialog(BOOL with_overdraft, BOOL* changed, int account_numb
 						{
 							printf("Operation succeed\n");
 						}
-                        clean_stdin();
+                        fpurge(stdin);
                         return TRUE;
                     }
 					else
@@ -706,13 +697,13 @@ BOOL current_account_dialog(BOOL with_overdraft, BOOL* changed, int account_numb
 						{
 							printf("Operation succeed\n");
 						}
-						clean_stdin();
+						fpurge(stdin);
                         return TRUE;
 					}
                 }
                 default:
                 {
-                    clean_stdin();
+                    fpurge(stdin);
                     printf("Try again or press 0 to cancel\n");
                     break;
                 }
@@ -720,7 +711,7 @@ BOOL current_account_dialog(BOOL with_overdraft, BOOL* changed, int account_numb
         }
         else
         {
-            clean_stdin();
+            fpurge(stdin);
 
             printf("Try again or press 0 to cancel\n");
         }
@@ -744,7 +735,7 @@ BOOL saving_account_dialog(int account_number)
                 case 0:
                 {
                     end = TRUE;
-                    clean_stdin();
+                    fpurge(stdin);
                     printf("Canceled\n");
                     return FALSE;
                 }
@@ -759,12 +750,12 @@ BOOL saving_account_dialog(int account_number)
 					{
 						printf("Operation succeed\n");
 					}
-                    clean_stdin();
+                    fpurge(stdin);
                     return TRUE;
                 }
                 default:
                 {
-                    clean_stdin();
+                    fpurge(stdin);
                     printf("Try again or press 0 to cancel\n");
                     break;
                 }
@@ -772,7 +763,7 @@ BOOL saving_account_dialog(int account_number)
         }
         else
         {
-            clean_stdin();
+            fpurge(stdin);
             printf("Try again or press 0 to cancel\n");
         }
     }
@@ -806,10 +797,10 @@ void account_management_dialog()
 	 printf("Enter account_number:\n");
 	 while(scanf("%d",&account_number)!=1)
 	 {
-		 clean_stdin();
+		 fpurge(stdin);
 		 printf("Try again or press 0 to cancel\n");
 	 }
-	 clean_stdin();
+	 fpurge(stdin);
 	 if(account_number==0)
 	 {
 		 free(pasport_number);

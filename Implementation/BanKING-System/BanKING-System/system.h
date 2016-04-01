@@ -1,3 +1,4 @@
+
 //  system.h
 //  testSystemLab5
 //
@@ -11,10 +12,10 @@
 #include <stdio.h>
 #include <sqlite3.h>
 
-#define FALSE 0;
-#define TRUE 1;
+#define FALSE 0
+#define TRUE 1
 typedef int BOOL;
-
+sqlite3* get_db();
 const static char* CHECK_USER_TYPE_REQUEST = "SELECT USER_TYPE.type FROM USER_TYPE JOIN BANK_USERS ON BANK_USERS.type_id = USER_TYPE.id WHERE BANK_USERS.login = @login AND BANK_USERS.password = @password;";
 const static char* UPDATE_DB_DATE_REQUEST = "UPDATE BANK_CONFIG SET value = @date WHERE param = \"last_update\";";
 const static char* BANK_CONFIG_DATA_REQUEST = "SELECT value FROM BANK_CONFIG WHERE param = @param;";
@@ -43,7 +44,7 @@ FROM BANK_CLIENTS JOIN BANK_ACCOUNTS ON BANK_ACCOUNTS.client_id = BANK_CLIENTS.i
 ON BANK_ACCOUNTS.type_id = ACCOUNT_TYPE.id LEFT JOIN OVERDRAFTS ON BANK_ACCOUNTS.overdraft_id = OVERDRAFTS.id WHERE BANK_ACCOUNTS.account_number = @account_number AND BANK_CLIENTS.passport_number = @pasport_number;";
 const static char* UPDATE_ACCOUNT_BALANCE_REQUEST = "UPDATE BANK_ACCOUNTS SET balance = @balance WHERE id = @id;";
 const static char* UPDATE_OVERDRAFT_CREDIT_SUM_REQUEST = "UPDATE OVERDRAFTS SET credit_sum = @credit_sum WHERE id = @id;";
-const static char* UPDATE_OVERDRAFT_INFO_REQUEST = "UPDATE OVERDRAFTS SET credit_sum = @credit_sum, credit_date = @credit_date, limit_date = @limit_date WHERE id = @id;";
+const static char* UPDATE_OVERDRAFT_INFO_REQUEST = "UPDATE OVERDRAFTS SET credit_sum = @credit_sum, credit_date = @credit_date, limit_date = @limitdate WHERE id = @id;";
 const static char* UPDATE_TOTAL_TRANSACTIONS = "UPDATE BANK_ACCOUNTS SET total_transactions = @total_transactions WHERE id = @id;";
 const static char* PAY_OVERDRAFT_FEE_REQUEST = "UPDATE OVERDRAFTS SET credit_sum = credit_sum + CAST((SELECT BANK_CONFIG.value FROM BANK_CONFIG WHERE param = \"overdraft_fee\") as Integer) WHERE credit_sum > 0 AND limit_date < (SELECT BANK_CONFIG.value FROM BANK_CONFIG WHERE param = \"last_update\");";
 const static char* INTEREST_RATE_PAY_REQUEST = "UPDATE BANK_ACCOUNTS SET balance = CAST((balance * CAST((SELECT BANK_CONFIG.value FROM BANK_CONFIG WHERE param = \"interest_rate\") AS Double)) AS Integer) WHERE balance > 0;";

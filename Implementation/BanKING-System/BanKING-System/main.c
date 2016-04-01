@@ -40,14 +40,18 @@ void user_login()
     {
         printf("Enter your login (q - to exit):\n");
         fpurge(stdin);
-        gets(login);
+        memset(login,0, sizeof(login));
+        fgets(login,sizeof(login)-1,stdin);
+        login[strlen(login)-1] = 0;
         if(strcmp(login, "q") == 0)
         {
             break;
         }
         printf("Enter your password:\n");
         fpurge(stdin);
-        gets(password);
+        memset(password,0, sizeof(password));
+        fgets(password,sizeof(login)-1,stdin);
+        password[strlen(password)-1]=0;
         user = authorization(login, password);
         switch(user)
         {
@@ -66,6 +70,7 @@ void user_login()
 
 void operator_menu()
 {
+    
     int choice = -1;
     while(choice != 0)
     {
@@ -100,6 +105,7 @@ void operator_menu()
                 break;
         }
     }
+     
 }
 
 void administrator_menu()
@@ -122,6 +128,7 @@ void administrator_menu()
             choice = -1;
             continue;
         }
+        fpurge(stdin);
         switch (choice)
         {
             case 0:

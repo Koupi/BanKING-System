@@ -7,28 +7,14 @@
 //
 
 #include "operator.h"
-#include "sqlite3.h"
-#include <stdio.h>
+
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
 #include "system.h"
 
-sqlite3* db;
-
-BOOL write_text_not_null(char* param, char* value, sqlite3_stmt *pStmt)
-{
-    int indx = sqlite3_bind_parameter_index(pStmt, param);
-    if(value[0]!='0')
-    {
-        if(sqlite3_bind_text (pStmt,indx,value, strlen(value), SQLITE_STATIC)!= SQLITE_OK)
-        {
-            printf("Failed binding %s\n", sqlite3_errmsg(db));
-            return FALSE;
-        }
-    }
-    return TRUE;
-}
+#include <stdio.h>
+#include <sqlite3.h>
 
 BOOL enroll(int sum, int account_number, char* passport_number)
 {
@@ -51,7 +37,7 @@ BOOL enroll(int sum, int account_number, char* passport_number)
         return 0;
     }
     
-    if(!write_text_not_null("@passport_number", passport_number, pStmt))
+    if(!write_text_not_null("@pasport_number", passport_number, pStmt))
     {
         printf("Faild creating\n");
         sqlite3_finalize(pStmt);
@@ -194,7 +180,7 @@ BOOL withdraw(int sum, int account_number, char* passport_number)
         return 0;
     }
     
-    if(!write_text_not_null("@passport_number", passport_number, pStmt))
+    if(!write_text_not_null("@pasport_number", passport_number, pStmt))
     {
         printf("Faild creating\n");
         sqlite3_finalize(pStmt);
@@ -406,7 +392,7 @@ BOOL transfer(int sum, int transfering_from_account_number, int transfering_to_a
         return 0;
     }
     
-    if(!write_text_not_null("@passport_number", transfering_from_passport_number, pStmt))
+    if(!write_text_not_null("@pasport_number", transfering_from_passport_number, pStmt))
     {
         printf("Faild creating\n");
         sqlite3_finalize(pStmt);
@@ -449,7 +435,7 @@ BOOL transfer(int sum, int transfering_from_account_number, int transfering_to_a
         return 0;
     }
     
-    if(!write_text_not_null("@passport_number", transfering_to_passport_number, pStmt))
+    if(!write_text_not_null("@pasport_number", transfering_to_passport_number, pStmt))
     {
         printf("Faild creating\n");
         sqlite3_finalize(pStmt);
