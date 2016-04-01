@@ -12,7 +12,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
-//#include "system.h"
+#include "system.h"
+
+sqlite3* db;
 
 BOOL write_text_not_null(char* param, char* value, sqlite3_stmt *pStmt)
 {
@@ -167,7 +169,8 @@ BOOL enroll(int sum, int account_number, char* passport_number)
     }
     rc = sqlite3_step(pStmt);
     sqlite3_finalize(pStmt);
-    //  lock_negative_accounts();
+    lock_negative_accounts();
+    printf("Enrolled successefully.\n");
     return TRUE;
 }
 
@@ -294,7 +297,7 @@ BOOL withdraw(int sum, int account_number, char* passport_number)
             sqlite3_finalize(pStmt);
             return FALSE;
         }
-        data limit_date_struct;
+        date limit_date_struct;
         if(current_date_struct.month == 12)
         {
             limit_date_struct.month = 1;
@@ -379,7 +382,8 @@ BOOL withdraw(int sum, int account_number, char* passport_number)
     }
     rc = sqlite3_step(pStmt);
     sqlite3_finalize(pStmt);
-    //  lock_negative_accounts();
+    lock_negative_accounts();
+    printf("Withdrawed successefully.\n");
     return TRUE;
 }
 
@@ -588,7 +592,7 @@ BOOL transfer(int sum, int transfering_from_account_number, int transfering_to_a
             sqlite3_finalize(pStmt);
             return FALSE;
         }
-        data limit_date_struct;
+        date limit_date_struct;
         if(current_date_struct.month == 12)
         {
             limit_date_struct.month = 1;
@@ -727,6 +731,7 @@ BOOL transfer(int sum, int transfering_from_account_number, int transfering_to_a
     }
     rc = sqlite3_step(pStmt);
     sqlite3_finalize(pStmt);
-    //  lock_negative_accounts();
+    lock_negative_accounts();
+    printf("Transfered successefully.\n");
     return TRUE;
 }
