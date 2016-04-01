@@ -12,9 +12,6 @@
 #include <stdio.h>
 #include <sqlite3.h>
 
-#define TRUE 1
-#define FALSE 0
-
 void enroll_dialog();
 void withdraw_dialog();
 void transfer_dialog();

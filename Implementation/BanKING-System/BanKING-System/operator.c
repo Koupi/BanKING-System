@@ -170,7 +170,6 @@ BOOL enroll(int sum, int account_number, char* passport_number)
     rc = sqlite3_step(pStmt);
     sqlite3_finalize(pStmt);
     lock_negative_accounts();
-    printf("Enrolled successefully.\n");
     return TRUE;
 }
 
@@ -383,7 +382,6 @@ BOOL withdraw(int sum, int account_number, char* passport_number)
     rc = sqlite3_step(pStmt);
     sqlite3_finalize(pStmt);
     lock_negative_accounts();
-    printf("Withdrawed successefully.\n");
     return TRUE;
 }
 
@@ -732,6 +730,84 @@ BOOL transfer(int sum, int transfering_from_account_number, int transfering_to_a
     rc = sqlite3_step(pStmt);
     sqlite3_finalize(pStmt);
     lock_negative_accounts();
-    printf("Transfered successefully.\n");
     return TRUE;
+}
+
+void enroll_dialog()
+{
+    int account_number, sum;
+    char *passport_number = (char*)malloc(sizeof(char)*(20));
+    fpurge(stdin);
+    printf("Enter an account number:\n");
+    scanf("%d", &account_number);
+    fpurge(stdin);
+    printf("Enter a passport number:\n");
+    scanf("%s", passport_number);
+    fpurge(stdin);
+    printf("Enter a sum to enroll:\n");
+    scanf("%d", &sum);
+    
+    if(enroll(sum, account_number, passport_number))
+    {
+        printf("Enrolled successfully.\n");
+    }
+    else
+    {
+        printf("Error!\n");
+    }
+    free(passport_number);
+}
+
+void withdraw_dialog()
+{
+    int account_number, sum;
+    char *passport_number = (char*)malloc(sizeof(char)*(20));
+    fpurge(stdin);
+    printf("Enter an account number:\n");
+    scanf("%d", &account_number);
+    fpurge(stdin);
+    printf("Enter a passport number:\n");
+    scanf("%s", passport_number);
+    fpurge(stdin);
+    printf("Enter a sum to enroll:\n");
+    scanf("%d", &sum);
+    if(withdraw(sum, account_number, passport_number))
+    {
+        printf("Withdrawed successfully.\n");
+    }
+    else
+    {
+        printf("Error!\n");
+    }
+    free(passport_number);
+}
+
+void transfer_dialog()
+{
+    int transfering_from_account_number, transfering_to_account_number, sum;
+    char *passport_transfering_from_number = (char*)malloc(sizeof(char)*(20));
+    char *passport_transfering_to_number = (char*)malloc(sizeof(char)*(20));
+    fpurge(stdin);
+    printf("Enter an account number you want to transfer from :\n");
+    scanf("%d", &transfering_from_account_number);
+    fpurge(stdin);
+    printf("Enter this account owner's passport number:\n");
+    scanf("%s", passport_transfering_from_number);
+    fpurge(stdin);
+    printf("Enter an account number you want to transfer to:\n");
+    scanf("%d", &transfering_to_account_number);
+    fpurge(stdin);
+    printf("Enter this account owner's passport number:\n");
+    scanf("%s", passport_transfering_to_number);
+    fpurge(stdin);
+    printf("Enter a sum to transfer:\n");
+    scanf("%d", &sum);
+    if(transfer(sum, transfering_from_account_number, transfering_to_account_number, passport_transfering_from_number, passport_transfering_to_number))
+    {
+        printf("Transfered successfully.\n");
+    }
+    else
+    {
+        printf("Error!\n");
+    }
 }
