@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8417598A1CAEFA5F002B7B02 /* libsqlite3.0.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 841759881CAEFA5F002B7B02 /* libsqlite3.0.tbd */; };
+		8417598B1CAEFA5F002B7B02 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 841759891CAEFA5F002B7B02 /* libsqlite3.tbd */; };
 		84760F501CA8415100670FC7 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 84760F4F1CA8415100670FC7 /* main.c */; };
 		84760F581CA8434A00670FC7 /* system.c in Sources */ = {isa = PBXBuildFile; fileRef = 84760F561CA8434A00670FC7 /* system.c */; };
 		84760F5B1CA8439200670FC7 /* operator.c in Sources */ = {isa = PBXBuildFile; fileRef = 84760F591CA8439200670FC7 /* operator.c */; };
@@ -26,6 +28,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		841759881CAEFA5F002B7B02 /* libsqlite3.0.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.0.tbd; path = usr/lib/libsqlite3.0.tbd; sourceTree = SDKROOT; };
+		841759891CAEFA5F002B7B02 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		84760F4C1CA8415100670FC7 /* BanKING-System */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "BanKING-System"; sourceTree = BUILT_PRODUCTS_DIR; };
 		84760F4F1CA8415100670FC7 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		84760F561CA8434A00670FC7 /* system.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = system.c; sourceTree = "<group>"; };
@@ -41,6 +45,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8417598A1CAEFA5F002B7B02 /* libsqlite3.0.tbd in Frameworks */,
+				8417598B1CAEFA5F002B7B02 /* libsqlite3.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -50,6 +56,8 @@
 		84760F431CA8415100670FC7 = {
 			isa = PBXGroup;
 			children = (
+				841759881CAEFA5F002B7B02 /* libsqlite3.0.tbd */,
+				841759891CAEFA5F002B7B02 /* libsqlite3.tbd */,
 				84760F4E1CA8415100670FC7 /* BanKING-System */,
 				84760F4D1CA8415100670FC7 /* Products */,
 			);
@@ -255,6 +263,7 @@
 				84760F551CA8415100670FC7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

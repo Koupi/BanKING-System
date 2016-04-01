@@ -12,7 +12,12 @@
 #include <time.h>
 
 sqlite3 *db;
-
+date current_date;
+bank_config config;
+sqlite3* get_db()
+{
+    return db;
+}
 date parse_date(char* d)
 {
     date res = {1,1,2016};
@@ -137,7 +142,7 @@ void init_bank_config()
 BOOL start()
 {
     int rc;
-    rc = sqlite3_open("/Users/admin/Documents/Lab5/testSystemLab5/testSystemLab5/BanKING_System_database.db", &db);
+    rc = sqlite3_open("/Users/admin/Documents/BanKING_System_database.db", &db);
     if(rc != SQLITE_OK)
     {
         fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
