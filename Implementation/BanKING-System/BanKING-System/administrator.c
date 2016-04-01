@@ -22,10 +22,6 @@ void clean_stdin()
         c = getchar();
     } while (c != '\n' && c != EOF);
 }
-char* get_string_current_date()
-{
-    return "12/20/2015";
-}
 int number_generate(int plus)
 {
     srand((int)time(0)+plus);
@@ -154,12 +150,14 @@ BOOL add_overdraft(int account_number)
         sqlite3_finalize(pStmt);
         return FALSE;
     }
-    if(!write_text_not_null("@credit_date", get_string_current_date(), pStmt))
+	char curr_date[51];
+	get_string_current_date(curr_date,sizeof(curr_date));
+    if(!write_text_not_null("@credit_date", curr_date, pStmt))
     {
         sqlite3_finalize(pStmt);
         return FALSE;
     }
-    if(!write_text_not_null("@limit_date", get_string_current_date(), pStmt))
+    if(!write_text_not_null("@limit_date", curr_date, pStmt))
     {
         sqlite3_finalize(pStmt);
         return FALSE;
@@ -269,6 +267,10 @@ void add_client_dialog()
 	{
 		printf("Unknown error\n");
 	}
+	else
+	{
+		printf("Operation succeed\n");
+	}
     free(firstname);
     free(lastname);
     free(pasport_number);
@@ -311,6 +313,10 @@ void remove_client_dialog()
     if(!remove_client(pasport_number))
 	{
 		printf("Unknown error\n");
+	}
+	else
+	{
+		printf("Operation succeed\n");
 	}
     free(pasport_number);
 }
@@ -580,9 +586,13 @@ void close_account_dialog()
    {
 	   printf("Unknown error\n");
    }
+   	else
+	{
+		printf("Operation succeed\n");
+	}
     free(pasport_number);
 }
-BOOL change_type(int account_number, char* type)
+BOOL change_account_type(int account_number, char* type)
 {
     int rc = 0;
     sqlite3_stmt *pStmt;
@@ -656,9 +666,13 @@ BOOL current_account_dialog(BOOL with_overdraft, BOOL* changed, int account_numb
                 {
                     end = TRUE;
                     *changed = TRUE;
-                    if(!change_type(account_number,"SAVING"))
+                    if(!change_account_type(account_number,"SAVING"))
 					{
 						printf("Unknown error\n");
+					}
+					else
+					{
+						printf("Operation succeed\n");
 					}
                     clean_stdin();
                     return TRUE;
@@ -673,6 +687,10 @@ BOOL current_account_dialog(BOOL with_overdraft, BOOL* changed, int account_numb
 						{
 							printf("Unknown error\n");
 						}
+						else
+						{
+							printf("Operation succeed\n");
+						}
                         clean_stdin();
                         return TRUE;
                     }
@@ -684,7 +702,11 @@ BOOL current_account_dialog(BOOL with_overdraft, BOOL* changed, int account_numb
 						{
 							printf("Unknown error\n");
 						}
-                        clean_stdin();
+						else
+						{
+							printf("Operation succeed\n");
+						}
+						clean_stdin();
                         return TRUE;
 					}
                 }
@@ -729,9 +751,13 @@ BOOL saving_account_dialog(int account_number)
                 case 1:
                 {
                     end = TRUE;
-                    if(!change_type(account_number,"CURRENT"))
+                    if(!change_account_type(account_number,"CURRENT"))
 					{
 						printf("Unknown error\n");
+					}
+					else
+					{
+						printf("Operation succeed\n");
 					}
                     clean_stdin();
                     return TRUE;
@@ -878,25 +904,3 @@ void account_management_dialog()
      free(pasport_number);
      return;
  }
-int main()
-{    
-    BOOL end = FALSE;
-    
-    int rc = sqlite3_open("BanKING_System_database.db", &db);
-    
-    if (rc != SQLITE_OK)
-    {
-        
-        printf("Cannot open database: %s\n", sqlite3_errmsg(db));
-        sqlite3_close(db);
-        return 0;
-    }
-	account_management_dialog();
-	//remove_client_dialog();
-    sqlite3_close(db);
-    
-
-    return 0;
-}
-
-
