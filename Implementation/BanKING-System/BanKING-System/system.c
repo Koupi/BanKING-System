@@ -142,7 +142,7 @@ void init_bank_config()
 BOOL start()
 {
     int rc;
-    rc = sqlite3_open("/Users/admin/Documents/BanKING_System_database.db", &db);
+    rc = sqlite3_open("/Users/admin/Desktop/BanKING-System-master/Database/BanKING_System_database.db", &db);
     if(rc != SQLITE_OK)
     {
         fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));

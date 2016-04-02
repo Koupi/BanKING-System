@@ -39,7 +39,7 @@ BOOL enroll(int sum, int account_number, char* passport_number)
     
     if(!write_text_not_null("@pasport_number", passport_number, pStmt))
     {
-        printf("Faild creating\n");
+        printf("Faild creating passport number\n");
         sqlite3_finalize(pStmt);
         return FALSE;
     }
@@ -278,7 +278,7 @@ BOOL withdraw(int sum, int account_number, char* passport_number)
         date current_date_struct = parse_date(current_date);
         if(!write_text_not_null("@credit_date", current_date, pStmt))
         {
-            printf("Faild creating\n");
+            printf("Faild creating credit date\n");
             sqlite3_finalize(pStmt);
             return FALSE;
         }
@@ -301,11 +301,11 @@ BOOL withdraw(int sum, int account_number, char* passport_number)
         {
             limit_date_struct.day = current_date_struct.day;
         }
-        char *limit_date = (char*)malloc(sizeof(char)*(size));
+        char *limit_date = (char*)malloc(sizeof(char)*(size*5));
         get_string_date(limit_date, size, limit_date_struct);
         if(!write_text_not_null("@limit_date", limit_date, pStmt))
         {
-            printf("Faild creating\n");
+            printf("Faild creating limit date\n");
             sqlite3_finalize(pStmt);
             return FALSE;
         }
@@ -755,7 +755,7 @@ void withdraw_dialog()
     printf("Enter a passport number:\n");
     scanf("%s", passport_number);
     fpurge(stdin);
-    printf("Enter a sum to enroll:\n");
+    printf("Enter a sum to withdraw:\n");
     scanf("%d", &sum);
     if(withdraw(sum, account_number, passport_number))
     {
