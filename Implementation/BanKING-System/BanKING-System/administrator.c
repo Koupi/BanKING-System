@@ -24,7 +24,9 @@ int number_generate(int plus)
 //OK
 BOOL string_input(char* message, char* destination, int dest_length)
 {
+    
     char *buf = (char*)malloc(sizeof(char)*(dest_length));
+    fpurge(stdin);
     printf(message);
 	printf("Enter 0 to cancel\n");
     memset(buf, 0, dest_length);
@@ -35,7 +37,10 @@ BOOL string_input(char* message, char* destination, int dest_length)
         memset(buf, 0, dest_length);
     }
     if(buf[0]=='0')
+    {
+        free(buf);
         return FALSE;
+    }
     strncpy(destination, buf, dest_length-1);
     destination[strlen(buf)-1] = 0;
     free(buf);
@@ -168,7 +173,7 @@ BOOL add_overdraft(int account_number)
 	}
 	return TRUE;
 }
-BOOL  remove_overdraft(int account_number)
+BOOL remove_overdraft(int account_number)
 {
 	if(only_account_number_request(account_number,REMOVE_OVERDRAFT_REQUEST)!= SQLITE_DONE)
 	{
@@ -230,7 +235,7 @@ void add_client_dialog()
     char *firstname = (char*)malloc(sizeof(char)*(buf_len+1));
     char *lastname = (char*)malloc(sizeof(char)*(buf_len+1));
     char *pasport_number = (char*)malloc(sizeof(char)*(buf_len+1));
-    
+    fpurge(stdin);
     
     if(!string_input("Enter firstame\n",firstname, buf_len+1))
     {
@@ -296,7 +301,7 @@ void remove_client_dialog()
 {
     int buf_len = 50;
     char *pasport_number = (char*)malloc(sizeof(char)*(buf_len+1));
-    
+    fpurge(stdin);
     if(!string_input("Enter pasport number\n", pasport_number, buf_len+1))
     {
         printf("Canceled\n");
@@ -324,6 +329,7 @@ int add_account(char* passport_number, int acc_type, BOOL overdraft)
     BOOL end = FALSE;
     int rc = 0;
     char* account_type = "CURRENT";
+    fpurge(stdin);
     rc = sqlite3_prepare_v2(db, ADD_ACCOUNT_REQUEST, -1, &pStmt, 0);
     if (rc != SQLITE_OK)
     {
@@ -400,6 +406,7 @@ void add_account_dialog()
     int buf_len = 50;
     char *pasport_number = (char*)malloc(sizeof(char)*(buf_len+1));
     int account_number = 0;
+    fpurge(stdin);
     if(!string_input("Enter pasport number\n", pasport_number, buf_len+1))
     {
         free(pasport_number);
@@ -484,6 +491,7 @@ void add_account_dialog()
                                pasport_number = NULL;
                                printf("Canceled\n");
 							   fpurge(stdin);
+                               return;
                                break;
                            }
                        case 1:
@@ -525,6 +533,7 @@ void add_account_dialog()
     {
         printf("Number of account created: %d\n", account_number);
     }
+    free(pasport_number);
 }
 
 BOOL close_account(char* pasport_number, int account_number)
@@ -547,7 +556,8 @@ void close_account_dialog()
 {
 	int buf_len = 50;
 	char *pasport_number = (char*)malloc(sizeof(char)*(buf_len+1));
-	if(!string_input("Enter pasport number\n", pasport_number, buf_len+1))
+	fpurge(stdin);
+    if(!string_input("Enter pasport number\n", pasport_number, buf_len+1))
 	{
 		printf("Canceled\n");
 		free(pasport_number);
@@ -626,6 +636,7 @@ BOOL change_account_type(int account_number, char* type)
 BOOL current_account_dialog(BOOL with_overdraft, BOOL* changed, int account_number)
 {
     BOOL end = FALSE;
+    fpurge(stdin);
     printf("Choose option\n");
     printf("(0) - Cancel\n");
     printf("(1) - Change type to saving\n");
@@ -720,7 +731,9 @@ BOOL current_account_dialog(BOOL with_overdraft, BOOL* changed, int account_numb
 }
 BOOL saving_account_dialog(int account_number)
 {
+    
     BOOL end = FALSE;
+    fpurge(stdin);
     printf("Choose option\n");
     printf("(0) - Cancel\n");
     printf("(1) - Change type to current\n");
@@ -779,10 +792,12 @@ void account_management_dialog()
      *changed= FALSE;
      int rc = 0;
      int index = 0;
+     fpurge(stdin);
      if(!string_input("Enter pasport number\n", pasport_number, buf_len+1))
      {
          printf("Canceled\n");
          free(pasport_number);
+         free(changed);
          return;
      }
 	 if(only_pass_request(pasport_number,CHECK_CLIENT_REQUEST)!=SQLITE_ROW)
@@ -804,16 +819,21 @@ void account_management_dialog()
 	 if(account_number==0)
 	 {
 		 free(pasport_number);
+         free(changed);
 		 printf("Canceled\n");
 		 return;
 	 }
      if(!passport_account_validate(pasport_number, account_number))
      {
+         free(pasport_number);
+         free(changed);
         return;
      }
      rc = sqlite3_prepare_v2(db, GET_FULL_ACCOUNT_INFORMATION_REQUEST, -1, &pStmt, 0);
      if (rc != SQLITE_OK)
      {
+         free(pasport_number);
+         free(changed);
          printf("Unknown error\n");
          sqlite3_finalize(pStmt);
          return;
@@ -821,12 +841,16 @@ void account_management_dialog()
      index = sqlite3_bind_parameter_index(pStmt, "@account_number");
      if(sqlite3_bind_int(pStmt, index, account_number)!= SQLITE_OK)
      {
+         free(pasport_number);
+         free(changed);
          sqlite3_finalize(pStmt);
          printf("Unknown error\n");
          return;
      }
      if(!write_text_not_null("@pasport_number", pasport_number, pStmt))
      {
+         free(pasport_number);
+         free(changed);
          printf("Unknown error\n");
          sqlite3_finalize(pStmt);
          return;
@@ -893,5 +917,6 @@ void account_management_dialog()
      }
      sqlite3_finalize(pStmt);
      free(pasport_number);
+     free(changed);
      return;
  }

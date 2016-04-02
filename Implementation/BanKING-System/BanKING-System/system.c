@@ -50,6 +50,7 @@ BOOL init_bank_config_int_elem(int *dest, char* param)
     rc = sqlite3_prepare_v2(db, BANK_CONFIG_DATA_REQUEST, -1, &res, 0);
     if (rc != SQLITE_OK)
     {
+        sqlite3_finalize(res);
         return FALSE;
     }
     int idx = sqlite3_bind_parameter_index(res, "@param");
@@ -95,6 +96,7 @@ void init_bank_config()
     rc = sqlite3_prepare_v2(db, BANK_CONFIG_DATA_REQUEST, -1, &res, 0);
     if (rc != SQLITE_OK)
     {
+        sqlite3_finalize(res);
         config.interest_rate = 1.5;
     }
     else
@@ -316,6 +318,7 @@ user_type authorization(char* login, char* password)
     rc = sqlite3_prepare_v2(db, CHECK_USER_TYPE_REQUEST, -1, &res, 0);
     if (rc != SQLITE_OK)
     {
+        sqlite3_finalize(res);
         return NOT_EXIST;
     }
     idx = sqlite3_bind_parameter_index(res, "@login");

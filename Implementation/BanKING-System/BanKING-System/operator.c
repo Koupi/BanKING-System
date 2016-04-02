@@ -280,6 +280,7 @@ BOOL withdraw(int sum, int account_number, char* passport_number)
         {
             printf("Faild creating credit date\n");
             sqlite3_finalize(pStmt);
+            free(current_date);
             return FALSE;
         }
         date limit_date_struct;
@@ -306,11 +307,15 @@ BOOL withdraw(int sum, int account_number, char* passport_number)
         if(!write_text_not_null("@limit_date", limit_date, pStmt))
         {
             printf("Faild creating limit date\n");
+            free(limit_date);
+            free(current_date);
             sqlite3_finalize(pStmt);
             return FALSE;
         }
         rc = sqlite3_step(pStmt);
         sqlite3_finalize(pStmt);
+        free(limit_date);
+        free(current_date);
     }
     else
     {
@@ -574,6 +579,7 @@ BOOL transfer(int sum, int transfering_from_account_number, int transfering_to_a
         {
             printf("Faild creating\n");
             sqlite3_finalize(pStmt);
+            free(current_date);
             return FALSE;
         }
         date limit_date_struct;
@@ -601,10 +607,14 @@ BOOL transfer(int sum, int transfering_from_account_number, int transfering_to_a
         {
             printf("Faild creating\n");
             sqlite3_finalize(pStmt);
+            free(limit_date);
+            free(current_date);
             return FALSE;
         }
         rc = sqlite3_step(pStmt);
         sqlite3_finalize(pStmt);
+        free(current_date);
+        free(limit_date);
     }
     else
     {
@@ -788,6 +798,7 @@ void transfer_dialog()
     fpurge(stdin);
     printf("Enter a sum to transfer:\n");
     scanf("%d", &sum);
+    fpurge(stdin);
     if(transfer(sum, transfering_from_account_number, transfering_to_account_number, passport_transfering_from_number, passport_transfering_to_number))
     {
         printf("Transfered successfully.\n");
@@ -796,4 +807,6 @@ void transfer_dialog()
     {
         printf("Error!\n");
     }
+    free(passport_transfering_from_number);
+    free(passport_transfering_to_number);
 }

@@ -50,7 +50,8 @@ void user_login()
         printf("Enter your password:\n");
         fpurge(stdin);
         memset(password,0, sizeof(password));
-        fgets(password,sizeof(login)-1,stdin);
+        fgets(password,sizeof(password)-1,stdin);
+        fpurge(stdin);
         password[strlen(password)-1]=0;
         user = authorization(login, password);
         switch(user)
@@ -90,20 +91,26 @@ void operator_menu()
         switch (choice)
         {
             case 0:
+                fpurge(stdin);
                 break;
             case 1:
+                fpurge(stdin);
                 enroll_dialog();
                 break;
             case 2:
+                fpurge(stdin);
                 withdraw_dialog();
                 break;
             case 3:
+                fpurge(stdin);
                 transfer_dialog();
                 break;
             default:
+                fpurge(stdin);
                 printf("Unknown operation.\n");
                 break;
         }
+        fpurge(stdin);
     }
      
 }
@@ -132,23 +139,30 @@ void administrator_menu()
         switch (choice)
         {
             case 0:
+                fpurge(stdin);
                 break;
             case 1:
+                fpurge(stdin);
                 add_client_dialog();
                 break;
             case 2:
+                fpurge(stdin);
                 add_account_dialog();
                 break;
             case 3:
+                fpurge(stdin);
                 account_management_dialog();
                 break;
             case 4:
+                fpurge(stdin);
                 close_account_dialog();
                 break;
             case 5:
+                fpurge(stdin);
                 remove_client_dialog();
                 break;
             default:
+                fpurge(stdin);
                 printf("Unknown operation.\n");
                 break;
         }
